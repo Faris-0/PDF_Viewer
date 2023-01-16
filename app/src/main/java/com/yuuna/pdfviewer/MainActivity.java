@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
 
     private Uri uri;
 
-    private final Integer TAG_PDF = 35;
+    private Integer TAG_PDF = 35, qDefault = 152;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
         uri = getIntent().getData();
         if (uri!=null) new AsyncCaller().execute();
 
-        findViewById(R.id.open_doc).setOnClickListener(view -> {
+        findViewById(R.id.open_doc).setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= 29) {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("application/pdf");
@@ -64,6 +64,32 @@ public class MainActivity extends Activity {
                 );
             }
         });
+
+        findViewById(R.id.setting_doc).setOnClickListener(v -> getQuality());
+    }
+
+    private void getQuality() {
+        String[] com = {"HIGH", "MEDIUM", "LOW"};
+        new AlertDialog.Builder(this)
+                .setTitle("Quality")
+                .setItems(com, (dialog, which) -> {
+                    dialog.dismiss();
+                    switch(which){
+                        case 0:
+                            qDefault = 72;
+                            if (uri!=null) new AsyncCaller().execute();
+                            break;
+                        case 1:
+                            qDefault = 112;
+                            if (uri!=null) new AsyncCaller().execute();
+                            break;
+                        case 2:
+                            qDefault = 152;
+                            if (uri!=null) new AsyncCaller().execute();
+                            break;
+                    }
+                })
+                .show();
     }
 
     @Override
@@ -140,8 +166,8 @@ public class MainActivity extends Activity {
 
                     // Important: the destination bitmap must be ARGB (not RGB).
                     Bitmap bitmap = Bitmap.createBitmap(
-                            getResources().getDisplayMetrics().densityDpi * page.getWidth() / 72,
-                            getResources().getDisplayMetrics().densityDpi * page.getHeight() / 72,
+                            getResources().getDisplayMetrics().densityDpi * page.getWidth() / qDefault,
+                            getResources().getDisplayMetrics().densityDpi * page.getHeight() / qDefault,
                             Bitmap.Config.ARGB_8888
                     );
 

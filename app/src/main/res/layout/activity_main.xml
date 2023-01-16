@@ -13,7 +13,14 @@
         android:id="@+id/open_doc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_margin="20dp"
         android:background="@drawable/ic_file" />
+
+    <ImageView
+        android:id="@+id/setting_doc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/ic_setting" />
 </RelativeLayout>

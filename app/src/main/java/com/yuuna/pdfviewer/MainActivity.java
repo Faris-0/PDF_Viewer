@@ -30,7 +30,6 @@ import java.util.ArrayList;
 public class MainActivity extends Activity {
 
     private ViewPager2 vpPDF;
-    private SliderAdapter sliderAdapter;
     private ArrayList<SliderItems> sliderItemsArrayList;
 
     private Uri uri;
@@ -45,14 +44,12 @@ public class MainActivity extends Activity {
         vpPDF = findViewById(R.id.slide_pdf);
 
         uri = getIntent().getData();
-        if (uri!=null) new AsyncCaller().execute();
+        if (uri != null) new AsyncCaller().execute();
 
         findViewById(R.id.open_doc).setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= 29) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("application/pdf");
                 try {
-                    startActivityForResult(intent, TAG_PDF);
+                    startActivityForResult(new Intent(Intent.ACTION_GET_CONTENT).setType("application/pdf"), TAG_PDF);
                 } catch (ActivityNotFoundException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -77,15 +74,15 @@ public class MainActivity extends Activity {
                     switch(which){
                         case 0:
                             qDefault = 72;
-                            if (uri!=null) new AsyncCaller().execute();
+                            if (uri != null) new AsyncCaller().execute();
                             break;
                         case 1:
                             qDefault = 112;
-                            if (uri!=null) new AsyncCaller().execute();
+                            if (uri != null) new AsyncCaller().execute();
                             break;
                         case 2:
                             qDefault = 152;
-                            if (uri!=null) new AsyncCaller().execute();
+                            if (uri != null) new AsyncCaller().execute();
                             break;
                     }
                 })
@@ -105,7 +102,7 @@ public class MainActivity extends Activity {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Toast.makeText(this, "Tidak ada perizinan untuk mengakses gambar", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Tidak ada perizinan untuk mengakses file", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -127,6 +124,7 @@ public class MainActivity extends Activity {
             super.onPreExecute();
             //this method will be running on UI thread
             pdLoading.setMessage("Please wait..");
+            pdLoading.setCancelable(false);
             pdLoading.show();
         }
 
@@ -200,10 +198,7 @@ public class MainActivity extends Activity {
                 final String show = "update";
                 updateUI(show);
             }
-        } catch (SecurityException e) {
-            e.printStackTrace();
-            updateUI(e.getMessage());
-        } catch (IOException e) {
+        } catch (SecurityException | IOException e) {
             e.printStackTrace();
             updateUI(e.getMessage());
         }
@@ -214,12 +209,8 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 // Stuff that updates the UI
-                if (e.equals("update")) {
-                    sliderAdapter = new SliderAdapter(sliderItemsArrayList, MainActivity.this);
-                    vpPDF.setAdapter(sliderAdapter);
-                } else {
-                    Toast.makeText(MainActivity.this, e, Toast.LENGTH_SHORT).show();
-                }
+                if (e.equals("update")) vpPDF.setAdapter(new SliderAdapter(sliderItemsArrayList, MainActivity.this));
+                else Toast.makeText(MainActivity.this, e, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -228,11 +219,15 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         new AlertDialog.Builder(this)
                 .setTitle("Yakin keluar?")
-                .setPositiveButton("Ya", (dialog, which) -> {
-                    int pid = android.os.Process.myPid();
-                    android.os.Process.killProcess(pid);
-                })
-                .setNegativeButton("Tidak", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton("Ya", (d, w) -> finishAndRemoveTask())
+                .setNegativeButton("Tidak", (d, w) -> d.dismiss())
                 .show();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        uri = intent.getData();
+        if (uri != null) new AsyncCaller().execute();
     }
 }

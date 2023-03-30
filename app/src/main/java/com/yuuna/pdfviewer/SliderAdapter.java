@@ -28,16 +28,13 @@ public class SliderAdapter extends RecyclerView.Adapter<SliderAdapter.Holder> {
 
     @Override
     public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.slider_items, parent, false);
-        return new Holder(view);
+        return new Holder(LayoutInflater.from(parent.getContext()).inflate(R.layout.slider_items, parent, false));
     }
 
     @Override
     public void onBindViewHolder(Holder holder, int position) {
-        SliderItems sliderItems = sliderModelArrayList.get(position);
-
         try {
-            FileInputStream fileInputStream = context.openFileInput(sliderItems.getBitmap());
+            FileInputStream fileInputStream = context.openFileInput(sliderModelArrayList.get(position).getBitmap());
             Bitmap bitmap = BitmapFactory.decodeStream(fileInputStream);
             fileInputStream.close();
             holder.ssPDF.setImage(ImageSource.bitmap(bitmap));

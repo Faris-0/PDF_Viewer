@@ -53,13 +53,7 @@ public class MainActivity extends Activity {
                 } catch (ActivityNotFoundException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        TAG_PDF
-                );
-            }
+            } else ActivityCompat.requestPermissions( this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, TAG_PDF);
         });
 
         findViewById(R.id.setting_doc).setOnClickListener(v -> getQuality());
@@ -101,9 +95,7 @@ public class MainActivity extends Activity {
                 } catch (ActivityNotFoundException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                Toast.makeText(this, "Tidak ada perizinan untuk mengakses file", Toast.LENGTH_SHORT).show();
-            }
+            } else Toast.makeText(this, "Tidak ada perizinan untuk mengakses file", Toast.LENGTH_SHORT).show();
         }
     }
 

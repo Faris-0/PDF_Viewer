@@ -88,10 +88,8 @@ public class MainActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == TAG_PDF) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("application/pdf");
                 try {
-                    startActivityForResult(intent, TAG_PDF);
+                    startActivityForResult(new Intent(Intent.ACTION_GET_CONTENT).setType("application/pdf"), TAG_PDF);
                 } catch (ActivityNotFoundException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -125,8 +123,7 @@ public class MainActivity extends Activity {
             //this method will be running on background thread so don't update UI frome here
             //do your long running http tasks here,you dont want to pass argument and u can access the parent class' variable url over here
             try {
-                ParcelFileDescriptor parcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
-                renderAllPages(parcelFileDescriptor);
+                renderAllPages(getContentResolver().openFileDescriptor(uri, "r"));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 updateUI(e.getMessage());
@@ -147,49 +144,46 @@ public class MainActivity extends Activity {
         try {
             PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor);
 
-            if (renderer != null) {
-                // let us just render all pages
-                final Integer pageCount = renderer.getPageCount();
-                sliderItemsArrayList = new ArrayList<>();
-                for (int i = 0; i < pageCount; i++) {
-                    PdfRenderer.Page page = renderer.openPage(i);
+            // let us just render all pages
+            sliderItemsArrayList = new ArrayList<>();
+            for (int i = 0; i < renderer.getPageCount(); i++) {
+                PdfRenderer.Page page = renderer.openPage(i);
 
-                    // Important: the destination bitmap must be ARGB (not RGB).
-                    Bitmap bitmap = Bitmap.createBitmap(
-                            getResources().getDisplayMetrics().densityDpi * page.getWidth() / qDefault,
-                            getResources().getDisplayMetrics().densityDpi * page.getHeight() / qDefault,
-                            Bitmap.Config.ARGB_8888
-                    );
+                // Important: the destination bitmap must be ARGB (not RGB).
+                Bitmap bitmap = Bitmap.createBitmap(
+                        getResources().getDisplayMetrics().densityDpi * page.getWidth() / qDefault,
+                        getResources().getDisplayMetrics().densityDpi * page.getHeight() / qDefault,
+                        Bitmap.Config.ARGB_8888
+                );
 
-                    // Paint bitmap before rendering
-                    Canvas canvas = new Canvas(bitmap);
-                    canvas.drawColor(Color.WHITE);
-                    canvas.drawBitmap(bitmap, 0, 0, null);
+                // Paint bitmap before rendering
+                Canvas canvas = new Canvas(bitmap);
+                canvas.drawColor(Color.WHITE);
+                canvas.drawBitmap(bitmap, 0, 0, null);
 
-                    // say we render for showing on the screen
-                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                // say we render for showing on the screen
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
 
-                    // do stuff with the bitmap
-                    sliderItemsArrayList.add(new SliderItems(i + ".jpeg"));
-                    try {
-                        FileOutputStream fileOutputStream = openFileOutput(i + ".jpeg", Context.MODE_PRIVATE);
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 20, fileOutputStream);
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        updateUI(e.getMessage());
-                    }
-
-                    // close the page
-                    page.close();
+                // do stuff with the bitmap
+                sliderItemsArrayList.add(new SliderItems(i + ".jpeg"));
+                try {
+                    FileOutputStream fileOutputStream = openFileOutput(i + ".jpeg", Context.MODE_PRIVATE);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 20, fileOutputStream);
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    updateUI(e.getMessage());
                 }
 
-                // close the renderer
-                renderer.close();
-
-                final String show = "update";
-                updateUI(show);
+                // close the page
+                page.close();
             }
+
+            // close the renderer
+            renderer.close();
+
+            final String show = "update";
+            updateUI(show);
         } catch (SecurityException | IOException e) {
             e.printStackTrace();
             updateUI(e.getMessage());
@@ -197,13 +191,10 @@ public class MainActivity extends Activity {
     }
 
     private void updateUI(String e) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                // Stuff that updates the UI
-                if (e.equals("update")) vpPDF.setAdapter(new SliderAdapter(sliderItemsArrayList, MainActivity.this));
-                else Toast.makeText(MainActivity.this, e, Toast.LENGTH_SHORT).show();
-            }
+        runOnUiThread(() -> {
+            // Stuff that updates the UI
+            if (e.equals("update")) vpPDF.setAdapter(new SliderAdapter(sliderItemsArrayList, MainActivity.this));
+            else Toast.makeText(MainActivity.this, e, Toast.LENGTH_SHORT).show();
         });
     }
 
